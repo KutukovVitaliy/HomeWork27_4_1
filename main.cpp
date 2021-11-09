@@ -1,11 +1,12 @@
 #include <iostream>
 #include <cassert>
+#include <utility>
 
 class MiddleBranch{
     class BigBranch* bigBranch = nullptr;
     std::string elfName;
 public:
-    MiddleBranch(class BigBranch* inBigBranch, std::string name) : bigBranch(inBigBranch), elfName(name){
+    MiddleBranch(class BigBranch* inBigBranch, std::string name) : bigBranch(inBigBranch), elfName(std::move(name)){
         assert(inBigBranch != nullptr);
     }
     std::string GetElfName(){
@@ -19,7 +20,7 @@ class BigBranch{
     MiddleBranch** pMiddleBranch = nullptr;
     std::string elfName;
 public:
-    BigBranch(class Tree* inTree, std::string name): tree(inTree), elfName(name){
+    BigBranch(class Tree* inTree, std::string name): tree(inTree), elfName(std::move(name)){
         assert(inTree != nullptr);
         countMiddleBranch = (std::rand() % 2) + 2;
         pMiddleBranch = new MiddleBranch*[countMiddleBranch];
@@ -30,8 +31,8 @@ public:
     std::string GetElfName(){
         return this->elfName;
     }
-    void SetElfName(std::string name){
-        this->elfName = name;
+    void SetElfName(std::string& name){
+        this->elfName = std::move(name);
     }
 };
 
@@ -47,17 +48,21 @@ public:
         }
     }
     BigBranch* GetBigBranchAt(int index){
-        return this->pBigBranch[index];
+        if(index >= 0 && index < countBigBranch) {
+            return pBigBranch[index];
+        }
+        return nullptr;
     }
-    int GetBigBranchCount(){
-        return this->countBigBranch;
+    int GetBigBranchCount() {
+        return countBigBranch;
     }
 };
 
 int main() {
     Tree myTree;
     for(int i = 0; i < myTree.GetBigBranchCount(); ++i){
-        myTree.GetBigBranchAt(i)->SetElfName(std::string("Elf" + std::to_string(i+1)));
+        std::string elfName = "Elf" + std::to_string(i+1);
+        myTree.GetBigBranchAt(i)->SetElfName(elfName);
         std::cout << "Big branch #" << i << " Elf name is " << myTree.GetBigBranchAt(i)->GetElfName() << std::endl;
     }
     std::cout << "Hello, World!" << std::endl;
