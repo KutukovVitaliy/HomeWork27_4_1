@@ -1,70 +1,52 @@
 #include <iostream>
-#include <cassert>
-#include <utility>
+#include "tree.h"
+#include <array>
 
-class MiddleBranch{
-    class BigBranch* bigBranch = nullptr;
-    std::string elfName;
-public:
-    MiddleBranch(class BigBranch* inBigBranch, std::string name) : bigBranch(inBigBranch), elfName(std::move(name)){
-        assert(inBigBranch != nullptr);
-    }
-    std::string GetElfName(){
-        return this->elfName;
-    }
-};
-
-class BigBranch{
-    class Tree* tree;
-    int countMiddleBranch;
-    MiddleBranch** pMiddleBranch = nullptr;
-    std::string elfName;
-public:
-    BigBranch(class Tree* inTree, std::string name): tree(inTree), elfName(std::move(name)){
-        assert(inTree != nullptr);
-        countMiddleBranch = (std::rand() % 2) + 2;
-        pMiddleBranch = new MiddleBranch*[countMiddleBranch];
-        for(int i = 0; i < countMiddleBranch; ++i){
-            pMiddleBranch[i] = new MiddleBranch(this, "None");
+std::array<Tree*, 2> VillageInit(){
+    std::array<Tree*, 2> village {nullptr};
+    std::string tmpElfName;
+    int n =1;
+    for(auto &k : village){
+        k = new Tree;
+        std::cout << "Tree #" << n++ << ": " <<std::endl;
+        for(int i = 0; i < k->GetBigBranchCount(); ++i){
+            std::string elfName;
+            std::cout << "Enter elf's name at the house in the big branch #" << i+1 << " : ";
+            std::cin >> elfName;
+            k->GetBigBranchPtr(i)->SetElfName(elfName);
+            for(int j = 0; j < k->GetBigBranchPtr(i)->GetMiddleBranchCount(); ++j){
+                std::cout << "Enter elf's name at the house in the middle branch #" << j+1 << " : ";
+                std::cin >> elfName;
+                k->GetBigBranchPtr(i)->GetMiddleBranchPtr(j)->SetElfName(elfName);
+            }
         }
     }
-    std::string GetElfName(){
-        return this->elfName;
-    }
-    void SetElfName(std::string& name){
-        this->elfName = std::move(name);
-    }
-};
+    return village;
+}
 
-class Tree{
-    int countBigBranch;
-    BigBranch** pBigBranch = nullptr;
-public:
-    Tree(){
-        countBigBranch = (std::rand() % 3) + 3;
-        pBigBranch = new BigBranch*[countBigBranch];
-        for(int i = 0; i < countBigBranch; ++i){
-            pBigBranch[i] = new BigBranch(this, "None");
-        }
-    }
-    BigBranch* GetBigBranchAt(int index){
-        if(index >= 0 && index < countBigBranch) {
-            return pBigBranch[index];
-        }
-        return nullptr;
-    }
-    int GetBigBranchCount() {
-        return countBigBranch;
-    }
-};
+
 
 int main() {
-    Tree myTree;
-    for(int i = 0; i < myTree.GetBigBranchCount(); ++i){
-        std::string elfName = "Elf" + std::to_string(i+1);
-        myTree.GetBigBranchAt(i)->SetElfName(elfName);
-        std::cout << "Big branch #" << i << " Elf name is " << myTree.GetBigBranchAt(i)->GetElfName() << std::endl;
-    }
-    std::cout << "Hello, World!" << std::endl;
+    std::array<Tree*, 2> village = VillageInit();
+    std::string inString;
+    do{
+        std::cout << "Enter elf name to search: " << std::endl;
+        std::cin >> inString;
+        if(inString != "exit"){
+            int neighbors = 0;
+            for( auto & k : village){
+                for(int i = 0; i < k->GetBigBranchCount(); ++i){
+                    neighbors=k->GetBigBranchPtr(i)->GetElfNeighbors(inString);
+                    if(neighbors != -1){
+                        std::cout << "Elf " << inString << " has " << neighbors << " neighbors." << std::endl;
+                        break;
+                    }
+                }
+                if(neighbors != -1) break;
+            }
+            if(neighbors == -1) std::cout << "Elf " << inString << " not find." << std::endl;
+        }
+    }while(inString != "exit");
+
     return 0;
 }
